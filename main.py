@@ -5,19 +5,25 @@ player_x = 100
 player_y = 100
 screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption("Gun strike")
-player_sprite = pygame.image.load("sprites\\player.png")
-player_sprite = pygame.transform.scale(player_sprite, (200, 200))
-bullet_sprite = pygame.image.load("sprites\\bullet.png")
+bullet_sprite = pygame.image.load("пуля.png")
 
-player_move_animation = [pygame.image.load("sprites\\player_walk_1.png"),
-                         pygame.image.load("sprites\\player_walk_2.png"),
-                         pygame.image.load("sprites\\player_walk_3.png")]
+player_move_animation = [pygame.image.load("player_walk_1.png"),
+                         pygame.image.load("player_walk_2.png"),
+                         pygame.image.load("player_walk_3.png")]
 bullet_list = [] # список всех пулек на экране
 
 
 current_sprite = 0
 def spawn_bullet(): # cоздоёт новою пулю на экране
-    bullet_list.append([player_x, player_y]) # добавления пули в список
+    bullet_list.append([player_x, player_y, "right"]) # добавления пули в список
+
+def bullet_control(): # контролирует передвижения и попадание в цели
+    for bullet in bullet_list:
+        if bullet[2] == "right":
+            bullet[0] += 5
+        if bullet[2] == "left":
+            bullet[0] -= 5
+
 
 
 def move_char():
@@ -28,6 +34,13 @@ def move_char():
     if pressed_key == "a":
         player_x -= 5  # скорость передвежения персонажа
 
+def draw_scren (): # создания функций рисования экрана
+    global current_sprite, player_x, player_y
+    screen.fill("#2A6FE5")
+    screen.blit(player_move_animation[current_sprite], (player_x, player_y))
+    for bullet in bullet_list:
+        screen.blit(bullet_sprite, (bullet[0], bullet[1]))
+    pygame.display.update()
 def walk_anim():  # Функция, воспроизводящая анимацию спрайта
     global current_sprite
     if pressed_key != None:
@@ -35,24 +48,45 @@ def walk_anim():  # Функция, воспроизводящая анимац�
         if len(player_move_animation) < current_sprite+1:
             current_sprite = 0
 
+
+def jump():
+    global  up_speed
+    up_speed = 10
+
+def physics_connrol():
+    global player_y, up_speed
+    player_y -= up_speed
+    up_speed -= 1
+
 pressed_key = None #
 i_count = 0 # счетчик для анимации
+up_speed = 0
 while True:
     i_count += 1
     for event in pygame.event.get(): # Перебор всех событий (нажатия клавиш)
         if event.type == pygame.QUIT:
             exit()
         elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_a:
+            if event.key == pygame.K_a: # персанаж идёт в влево
                 pressed_key = "a"
-            if event.key == pygame.K_d:
+            if event.key == pygame.K_d: # персонаж идёт в право
                 pressed_key = "d"
+            if event.key == pygame.K_w: # персонаж идёт в вверх
+                pressed_key = "w"
+            if event.key == pygame.K_s: # персонаж идёт в вниз
+                pressed_key = "s"
+            if event.key == pygame.K_SPACE: # персонаж прыгает
+                jump()
+
         elif event.type == pygame.KEYUP:
             pressed_key = None
 
     if i_count%60 == 0:
         walk_anim()
-    move_char
-    screen.fill("#2A6FE5")
-    screen.blit(player_move_animation[current_sprite], (player_x, player_y))
-    pygame.display.update()
+    move_char()
+    bullet_control()
+    physics_connrol()
+    draw_scren()
+
+
+
